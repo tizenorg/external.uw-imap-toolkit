@@ -1,5 +1,5 @@
 prefix=@prefix@
-libdir=@libdir@
+libdir=@prefix@/lib
 includedir=@prefix@/include
  
 Name: IMAP Toolkit Library 

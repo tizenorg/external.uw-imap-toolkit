@@ -806,9 +806,14 @@ long mail_valid_net_parse_work (char *name,NETMBX *mb,char *service)
 	else if (!compare_cstring (s,"loser")) mb->loser = T;
 	else if (!compare_cstring (s,"tls") && !mb->notlsflag)
 	  mb->tlsflag = T;
-	//APOP Authentication - shasikala.p@siso.com
 	else if (!compare_cstring (s,"apop"))
 	  mb->apop = T;
+	else if (!compare_cstring (s,"force_tls_v1_0"))
+	  mb->force_tls_v1_0 = T;
+	else if (!compare_cstring (s,"needauth"))
+	  mb->auth_method = AUTH_METHOD_DEFAULT;
+	else if (!compare_cstring (s,"xoauth2"))
+	  mb->auth_method = AUTH_METHOD_XOAUTH2;
 	else if (!compare_cstring (s,"tls-sslv23") && !mb->notlsflag)
 	  mb->tlssslv23 = mb->tlsflag = T;
 	else if (!compare_cstring (s,"notls") && !mb->tlsflag)
@@ -1350,8 +1355,13 @@ MAILSTREAM *mail_open_work (DRIVER *d,MAILSTREAM *stream,char *name,
 MAILSTREAM *mail_close_full (MAILSTREAM *stream,long options)
 {
   int i;
+  char tmp[MAILTMPLEN] = { 0, };
   if (stream) {			/* make sure argument given */
-				/* do the driver's close action */
+	snprintf (tmp, MAILTMPLEN, "Checking 'unhealthy' flag of MAILSTEAM.. [%d]", stream->unhealthy);
+	MM_LOG (tmp,(long)WARN);
+	if(stream->unhealthy)
+		return NIL;
+	/* do the driver's close action */
     if (stream->dtb) (*stream->dtb->close) (stream,options);
     stream->dtb = NIL;		/* resign driver */
     if (stream->mailbox) fs_give ((void **) &stream->mailbox);
@@ -6226,6 +6236,9 @@ NETSTREAM *net_open (NETMBX *mb,NETDRIVER *dv,unsigned long port,
   NETSTREAM *stream = NIL;
   char tmp[MAILTMPLEN];
   unsigned long flags = mb->novalidate ? NET_NOVALIDATECERT : 0;
+
+  flags |= (mb->force_tls_v1_0) ? NET_FORCE_LOWER_TLS_VERSION : 0;
+
   if (strlen (mb->host) >= NETMAXHOST) {
     sprintf (tmp,"Invalid host name: %.80s",mb->host);
     MM_LOG (tmp,ERROR);
@@ -6373,6 +6386,8 @@ void net_close (NETSTREAM *stream)
 
 char *net_host (NETSTREAM *stream)
 {
+  if(stream == NULL || stream->stream == NULL)
+	  return "";
   return (*stream->dtb->host) (stream->stream);
 }
 
@@ -6384,6 +6399,8 @@ char *net_host (NETSTREAM *stream)
 
 char *net_remotehost (NETSTREAM *stream)
 {
+  if(stream == NULL || stream->stream == NULL)
+    return "";
   return (*stream->dtb->remotehost) (stream->stream);
 }
 
@@ -6394,6 +6411,8 @@ char *net_remotehost (NETSTREAM *stream)
 
 unsigned long net_port (NETSTREAM *stream)
 {
+  if(stream == NULL || stream->stream == NULL)
+    return 0;
   return (*stream->dtb->port) (stream->stream);
 }
 
@@ -6405,5 +6424,7 @@ unsigned long net_port (NETSTREAM *stream)
 
 char *net_localhost (NETSTREAM *stream)
 {
+  if(stream == NULL || stream->stream == NULL)
+    return "";
   return (*stream->dtb->localhost) (stream->stream);
 }

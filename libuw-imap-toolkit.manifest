@@ -1,9 +1,5 @@
 <manifest>
-  <define> 
-    <domain name="libuw-imap-toolkit"/>
-  </define>
-  <request>
-    <domain name="libuw-imap-toolkit"/>
-  </request>
+    <request>
+        <domain name="_"/>
+    </request>
 </manifest>
-

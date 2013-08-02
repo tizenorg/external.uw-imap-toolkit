@@ -1,11 +1,9 @@
 #sbs-git:slp/pkgs/u/uw-imap-toolkit uw-imap-toolkit 0.1.1 a675e5c581b6726dcb93c63d826d6827bf29d671
 %define _optdir	/opt
 %define _appdir	%{_optdir}/apps
-
-
 Name:       uw-imap-toolkit
 Summary:    IMAP-2007e developed by University of Washington
-Version: 0.1.1
+Version: 0.1.2
 Release:    0
 Group:      TO_BE/FILLED_IN
 License:    TO BE FILLED IN
@@ -59,6 +57,7 @@ rm -rf %{buildroot}
 
 
 %files -n libuw-imap-toolkit
+%manifest libuw-imap-toolkit.manifest
 %defattr(-,root,root,-) 
 %{_libdir}/libuw-imap-toolkit.so.*
 
