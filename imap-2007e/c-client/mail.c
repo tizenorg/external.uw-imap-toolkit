@@ -1265,7 +1265,10 @@ MAILSTREAM *mail_open (MAILSTREAM *stream,char *name,long options)
     d = mail_valid (NIL,name,(options & OP_SILENT) ?
 		    (char *) NIL : "open mailbox");
   }
-  return d ? mail_open_work (d,stream,name,options) : stream;
+  if (d)
+    return mail_open_work (d,stream,name,options);
+
+  return stream;
 }
 
 /* Mail open worker routine
@@ -1281,16 +1284,17 @@ MAILSTREAM *mail_open_work (DRIVER *d,MAILSTREAM *stream,char *name,
 {
   int i;
   char tmp[MAILTMPLEN];
+  char *local_mailbox_name = NIL;
   NETMBX mb;
   if (options & OP_PROTOTYPE) return (*d->open) (NIL);
   /* name is copied here in case the caller does a re-open using
    * stream->mailbox or stream->original_mailbox as the argument.
    */
-  name = cpystr (name);		/* make copy of name */
+  local_mailbox_name = cpystr (name);		/* make copy of name */
   if (stream) {			/* recycling requested? */
     if ((stream->dtb == d) && (d->flags & DR_RECYCLE) &&
 	((d->flags & DR_HALFOPEN) || !(options & OP_HALFOPEN)) &&
-	mail_usable_network_stream (stream,name)) {
+	mail_usable_network_stream (stream,local_mailbox_name)) {
 				/* yes, checkpoint if needed */
       if (d->flags & DR_XPOINT) mail_check (stream);
       mail_free_cache (stream);	/* clean up stream */
@@ -1313,7 +1317,7 @@ MAILSTREAM *mail_open_work (DRIVER *d,MAILSTREAM *stream,char *name,
   }
 				/* check if driver does not support halfopen */
   else if ((options & OP_HALFOPEN) && !(d->flags & DR_HALFOPEN)) {
-    fs_give ((void **) &name);
+    fs_give ((void **) &local_mailbox_name);
     return NIL;
   }
 
@@ -1323,7 +1327,7 @@ MAILSTREAM *mail_open_work (DRIVER *d,MAILSTREAM *stream,char *name,
 				     sizeof (MAILSTREAM)),(long) 0,CH_INIT);
   stream->dtb = d;		/* set dispatch */
 				/* set mailbox name */
-  stream->mailbox = cpystr (stream->original_mailbox = name);
+  stream->mailbox = cpystr (stream->original_mailbox = local_mailbox_name);
 				/* initialize stream flags */
   stream->inbox = stream->lock = NIL;
   stream->debug = (options & OP_DEBUG) ? T : NIL;

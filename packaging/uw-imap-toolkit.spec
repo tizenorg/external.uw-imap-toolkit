@@ -3,7 +3,7 @@
 %define _appdir	%{_optdir}/apps
 Name:       uw-imap-toolkit
 Summary:    IMAP-2007e developed by University of Washington
-Version: 0.1.2
+Version: 0.1.3
 Release:    0
 Group:      TO_BE/FILLED_IN
 License:    TO BE FILLED IN
