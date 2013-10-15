@@ -3,7 +3,7 @@
 %define _appdir	%{_optdir}/apps
 Name:       uw-imap-toolkit
 Summary:    IMAP-2007e developed by University of Washington
-Version: 0.1.3
+Version: 0.1.4
 Release:    0
 Group:      TO_BE/FILLED_IN
 License:    TO BE FILLED IN
@@ -49,6 +49,8 @@ make %{?jobs:-j%jobs}
 rm -rf %{buildroot}
 %make_install
 
+mkdir -p %{buildroot}/usr/share/license
+cp imap-2007e/LICENSE.txt %{buildroot}/usr/share/license/%{name}
 
 %post -n libuw-imap-toolkit -p /sbin/ldconfig
 
@@ -60,7 +62,7 @@ rm -rf %{buildroot}
 %manifest libuw-imap-toolkit.manifest
 %defattr(-,root,root,-) 
 %{_libdir}/libuw-imap-toolkit.so.*
-
+/usr/share/license/%{name}
 
 %files -n libuw-imap-toolkit-devel
 %defattr(-,root,root,-) 
