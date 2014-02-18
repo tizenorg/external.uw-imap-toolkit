@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.61)
 AC_INIT(FULL-PACKAGE-NAME, VERSION, BUG-REPORT-ADDRESS)
-AM_INIT_AUTOMAKE(-Wall -Werror foreign)
+AM_INIT_AUTOMAKE(-Wall -Werror -Wno-extra-portability foreign)
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADER([config.h])
 
