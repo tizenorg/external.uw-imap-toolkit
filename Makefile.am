@@ -49,8 +49,9 @@ libuw_imap_toolkit_la_CPPFLAGS= -I. \
 			    -DDATA_PATH=\"/opt/.email/res\" \
 			    -DEXPORT_API="__attribute__((visibility(\"default\")))"
  
-#				-DFEATURE_CORE_DEBUG 
-#               -D__NON_BLOCKING_SSL_WRITE__ 
+#-DFEATURE_CORE_DEBUG 
+#-D__NON_BLOCKING_SSL_WRITE__ 
+#-D__FEATURE_METADATA_SUPPORT__
 			    
 libuw_imap_toolkit_la_LIBADD = -L$(prefix)/lib \
 			       $(SSL_LIBS) 

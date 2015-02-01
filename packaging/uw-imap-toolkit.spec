@@ -1,12 +1,11 @@
-#sbs-git:slp/pkgs/u/uw-imap-toolkit uw-imap-toolkit 0.1.1 a675e5c581b6726dcb93c63d826d6827bf29d671
 %define _optdir	/opt
 %define _appdir	%{_optdir}/apps
 Name:       uw-imap-toolkit
 Summary:    IMAP-2007e developed by University of Washington
-Version: 0.1.4
+Version:    0.1.35
 Release:    0
 Group:      TO_BE/FILLED_IN
-License:    Apache-2.0
+License:    Apache License, Version 2.0
 Source0:    %{name}-%{version}.tar.gz
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
@@ -49,9 +48,8 @@ make %{?jobs:-j%jobs}
 rm -rf %{buildroot}
 %make_install
 
-mkdir -p %{buildroot}/usr/share/license
-cp imap-2007e/LICENSE.txt %{buildroot}/usr/share/license/libuw-imap-toolkit
-cp imap-2007e/LICENSE.txt %{buildroot}/usr/share/license/libuw-imap-toolkit-devel
+mkdir -p %{buildroot}/usr/share/license/%{name}
+cp imap-2007e/LICENSE.txt %{buildroot}/usr/share/license/%{name}/LICENSE
 
 %post -n libuw-imap-toolkit -p /sbin/ldconfig
 
@@ -63,11 +61,10 @@ cp imap-2007e/LICENSE.txt %{buildroot}/usr/share/license/libuw-imap-toolkit-deve
 %manifest libuw-imap-toolkit.manifest
 %defattr(-,root,root,-) 
 %{_libdir}/libuw-imap-toolkit.so.*
-/usr/share/license/libuw-imap-toolkit
+/usr/share/license/%{name}/LICENSE
 
 %files -n libuw-imap-toolkit-devel
 %defattr(-,root,root,-) 
 %{_libdir}/libuw-imap-toolkit.so
 %{_libdir}/pkgconfig/uw-imap-toolkit.pc
 %{_includedir}/uw-imap-toolkit/*
-/usr/share/license/libuw-imap-toolkit-devel
