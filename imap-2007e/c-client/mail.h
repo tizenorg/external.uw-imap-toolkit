@@ -413,6 +413,8 @@
 #define OP_NOKOD (long) 0x800	/* suppress kiss-of-death */
 #define OP_SNIFF (long) 0x1000	/* metadata only open */
 				/* reserved for application use */
+
+#define OP_FORCE_LOWER_TLS_VERSION 0x2000 /* force lower TLS version */
 #define OP_RESERVED (unsigned long) 0xff000000
 
 
@@ -428,6 +430,8 @@
 #define NET_TLSCLIENT ((unsigned long) 0x10000000)
 				/* try SSL mode */
 #define NET_TRYSSL ((unsigned long) 0x8000000)
+				/* force lower TLS version */
+#define NET_FORCE_LOWER_TLS_VERSION ((unsigned long) 0x4000000)
 
 /* Close options */
 
@@ -587,6 +591,9 @@
 
 #endif /* __FEATURE_XLIST_SUPPORT__ */
 
+#define AUTH_METHOD_NONE     0
+#define AUTH_METHOD_DEFAULT  1
+#define AUTH_METHOD_XOAUTH2  2
 
 /* Sort functions */
 
@@ -678,7 +685,9 @@ typedef struct net_mailbox {
   unsigned int norsh : 1;	/* don't use rsh/ssh */
   unsigned int loser : 1;	/* server is a loser */
   unsigned int tlssslv23 : 1;	/* force SSLv23 client method over TLS */
-  unsigned int apop; /*APOP Authentication - shasikala.p@siso.com*/
+  unsigned int apop; /*APOP Authentication */
+  unsigned int force_tls_v1_0 : 1; /* force TLS v1.0 */
+  unsigned int auth_method; /* Authentication method */
 } NETMBX;
 
 /* Item in an address list */
@@ -1612,7 +1621,15 @@ DRIVER {
 #define MM_FLAGS mm_flags
 #define MM_NOTIFY mm_notify
 #define MM_STATUS mm_status
-#define MM_LOG mm_log
+/* #define MM_LOG mm_log */
+#define MM_LOG(str, errflg)  \
+	do {\
+		char *path_log = g_strdup_printf("%s (%d)> %s", __FUNCTION__, __LINE__, str);\
+		mm_log(path_log, errflg);\
+		g_free(path_log);\
+		path_log = NULL;\
+	} while(0)
+
 #define MM_CRITICAL mm_critical
 #define MM_NOCRITICAL mm_nocritical
 #define MM_DISKERROR mm_diskerror
@@ -1637,6 +1654,9 @@ void mm_nocritical (MAILSTREAM *stream);
 long mm_diskerror (MAILSTREAM *stream,long errcode,long serious);
 void mm_fatal (char *string);
 void *mm_cache (MAILSTREAM *stream,unsigned long msgno,long op);
+#ifdef __FEATURE_IMAP_ID_SUPPORT__
+void mm_imap_id (char **id_string);
+#endif /* __FEATURE_IMAP_ID_SUPPORT__ */
 
 extern STRINGDRIVER mail_string;
 void mail_versioncheck (char *version);
@@ -1715,6 +1735,9 @@ long mail_copy_full (MAILSTREAM *stream,char *sequence,char *mailbox,
 		     long options);
 long mail_append_full (MAILSTREAM *stream,char *mailbox,char *flags,char *date,
 		       STRING *message);
+long mail_append_command (MAILSTREAM *stream,char *mailbox,char *flags,char *date, STRING *message);
+long mail_append_message (MAILSTREAM *stream,char *mailbox,STRING *message);
+long mail_append_end (MAILSTREAM *stream,char *mailbox);
 long mail_append_multiple (MAILSTREAM *stream,char *mailbox,append_t af,
 			   void *data);
 void mail_gc (MAILSTREAM *stream,long gcflags);
@@ -1755,6 +1778,7 @@ char *mail_search_gets (readfn_t f,void *stream,unsigned long size,
 SEARCHPGM *mail_criteria (char *criteria);
 int mail_criteria_date (unsigned short *date,char **r);
 int mail_criteria_string (STRINGLIST **s,char **r);
+int mail_criteria_header_string (SEARCHHEADER **hdr, char **r);
 unsigned short mail_shortdate (unsigned int year,unsigned int month,
 			       unsigned int day);
 SEARCHSET *mail_parse_set (char *s,char **ret);

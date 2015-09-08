@@ -65,61 +65,67 @@ long auth_plain_client (authchallenge_t challenger,authrespond_t responder,
 				/* get initial (empty) challenge */
   if (challenge = (*challenger) (stream,&clen)) {
     fs_give ((void **) &challenge);
-    if (clen) {			/* abort if challenge non-empty */
-      mm_log ("auth_plain_client : Server bug: non-empty initial PLAIN challenge 1",WARN);
-      (*responder) (stream,NIL,0);
-      ret = LONGT;		/* will get a BAD response back */
-    }
     pwd[0] = NIL;		/* prompt user if empty challenge */
     mm_login (mb,user,pwd,*trial);
 
-    if (!pwd[0]) {		/* empty challenge or user requested abort */
-      (*responder) (stream,NIL,0);
-      *trial = 0;		/* cancel subsequent attempts */
-      ret = LONGT;		/* will get a BAD response back */
+    if (clen) {
+      mm_log ("Enter section for handling non-emtpy challenge",WARN);
+      if ((*responder) (stream,user,strlen (user)) &&
+           (challenge = (*challenger) (stream,&clen))) {
+        fs_give ((void **) &challenge);
+           /* send password */
+        if ((*responder) (stream,pwd,strlen (pwd))) {
+          if (challenge = (*challenger) (stream,&clen))
+            fs_give ((void **) &challenge);
+          else {
+            ++*trial;		/* can try again if necessary */
+            ret = LONGT;		/* check the authentication */
+          }
+        }
+      }
     }
     else {
-      unsigned long rlen = 
-	strlen (mb->authuser) + strlen (user) + strlen (pwd) + 2;
-      char *response = (char *) fs_get (rlen);
-      char *t = response;	/* copy authorization id */
+      if (!pwd[0]) {		/* empty challenge or user requested abort */
+        (*responder) (stream,NIL,0);
+        *trial = 0;		/* cancel subsequent attempts */
+        ret = LONGT;		/* will get a BAD response back */
+      }
+      else {
+        unsigned long rlen =
+        strlen (mb->authuser) + strlen (user) + strlen (pwd) + 2;
+        char *response = (char *) fs_get (rlen);
+        char *t = response;	/* copy authorization id */
 
-	memset(response, 0x00, rlen);
+        memset(response, 0x00, rlen);
 
-      if (mb->authuser[0]) for (u = user; *u; *t++ = *u++);
-      *t++ = '\0';		/* delimiting NUL */
+        if (mb->authuser[0]) for (u = user; *u; *t++ = *u++);
+        *t++ = '\0';		/* delimiting NUL */
 
 				/* copy authentication id */
-      for (u = mb->authuser[0] ? mb->authuser : user; *u; *t++ = *u++);
-      *t++ = '\0';		/* delimiting NUL */
+        for (u = mb->authuser[0] ? mb->authuser : user; *u; *t++ = *u++);
+        *t++ = '\0';		/* delimiting NUL */
 
 				/* copy password */
-      for (u = pwd; *u; *t++ = *u++);
+        for (u = pwd; *u; *t++ = *u++);
 				/* send credentials */
 	
-      if ((*responder) (stream,response,rlen)) {
-	if (challenge = (*challenger) (stream,&clen))
-	{
-	  fs_give ((void **) &challenge);
-	}
-	else {
-	  ++*trial;		/* can try again if necessary */
-	  ret = LONGT;		/* check the authentication */
-	}
+        if ((*responder) (stream,response,rlen)) {
+          if (challenge = (*challenger) (stream,&clen)) {
+            fs_give ((void **) &challenge);
+          }
+          else {
+            ++*trial;		/* can try again if necessary */
+            ret = LONGT;		/* check the authentication */
+          }
+        }
+        memset (response,0,rlen);	/* erase credentials */
+        fs_give ((void **) &response);
       }
-      memset (response,0,rlen);	/* erase credentials */
-      fs_give ((void **) &response);
     }
   }
-  else // [ Written by Kyuho Jo for AOL 2010/02/16
+  else
   {
   	mm_log ("Enter section for handling emtpy challenge",WARN);
-    if (clen) 
-	{			/* abort if challenge non-empty */
-      mm_log ("auth_plain_client : Server bug: non-empty initial PLAIN challenge 2",WARN);
-      (*responder) (stream,NIL,0);
-      ret = LONGT;		/* will get a BAD response back */
-    }
     pwd[0] = NIL;		/* prompt user if empty challenge */
 
 	mm_login (mb,user,pwd,*trial);
@@ -155,7 +161,7 @@ long auth_plain_client (authchallenge_t challenger,authrespond_t responder,
 	      fs_give ((void **) &challenge);
 	    else 
 	    {
-	      mm_log ("Second emtpy challege  ",WARN);
+	      mm_log ("Second empty challege  ",WARN);
 	      ++*trial;		/* can try again if necessary */
 	      ret = LONGT;		/* check the authentication */
 	    }
@@ -164,7 +170,7 @@ long auth_plain_client (authchallenge_t challenger,authrespond_t responder,
       fs_give ((void **) &response);
     }
 	
-  }    // ] Written by Kyuho Jo for AOL 2010/02/16
+  }
 
   memset (pwd,0,MAILTMPLEN);	/* erase password */
   if (!ret) *trial = 65535;	/* don't retry if bad protocol */

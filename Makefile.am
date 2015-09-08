@@ -31,6 +31,7 @@ libuw_imap_toolkit_la_CPPFLAGS= -I. \
 			    -D__FEATURE_HEADER_OPTIMIZATION__ \
 			    -D__FEATURE_SEND_OPTMIZATION__ \
 			    -D__FEATURE_XLIST_SUPPORT__ \
+			    -D__FEATURE_SUPPORT_IMAP_ID__ \
 			    -DCREATEPROTO=unixproto -DEMPTYPROTO=unixproto \
 			    -DMAILSPOOL=\"/var/spool/mail\" \
 			    -DANONYMOUSHOME=\"/var/spool/mail/anonymous\" \
@@ -48,8 +49,9 @@ libuw_imap_toolkit_la_CPPFLAGS= -I. \
 			    -DDATA_PATH=\"/opt/.email/res\" \
 			    -DEXPORT_API="__attribute__((visibility(\"default\")))"
  
-#				-DFEATURE_CORE_DEBUG 
-#               -D__NON_BLOCKING_SSL_WRITE__ 
+#-DFEATURE_CORE_DEBUG 
+#-D__NON_BLOCKING_SSL_WRITE__ 
+#-D__FEATURE_METADATA_SUPPORT__
 			    
 libuw_imap_toolkit_la_LIBADD = -L$(prefix)/lib \
 			       $(SSL_LIBS) 
