@@ -2,11 +2,20 @@
 %define _appdir	%{_optdir}/apps
 Name:       uw-imap-toolkit
 Summary:    IMAP-2007e developed by University of Washington
-Version:    0.1.35
+Version:    0.1.36
 Release:    0
 Group:      TO_BE/FILLED_IN
 License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz
+
+%if "%{?tizen_profile_name}" == "wearable"
+ExcludeArch: %{arm} %ix86 x86_64
+%endif
+
+%if "%{?tizen_profile_name}" == "tv"
+ExcludeArch: %{arm} %ix86 x86_64
+%endif
+
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 BuildRequires: libgcrypt-devel
